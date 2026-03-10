@@ -1,4 +1,4 @@
-const HIDDEN_COLUMNS = ['URI'];
+const HIDDEN_COLUMNS = ['URI', 'Publication_URI', 'Venue_URI', 'Author_URI', 'Year_URI', '2020s_URI', '2010s_URI', '2000s_URI', 'Pre2000s_URI'];
 const CLICKABLE_COLUMNS = ['Entity', 'Publication', 'Venue', 'Author', 'Year', '2020s', '2010s', '2000s', 'Pre2000s'];
 
 function renderTable(data, state) {
@@ -79,7 +79,8 @@ function renderTableBody(vars, bindings) {
                 } else if (CLICKABLE_COLUMNS.includes(varName)) {
                     td.className = 'clickable-cell text-blue-600';
                     td.dataset.column = varName;
-                    td.dataset.uri = row['URI']?.value || '';
+                    const uriVar = `${varName}_URI`;
+                    td.dataset.uri = row[uriVar]?.value || row['URI']?.value || '';
                     td.dataset.value = displayValue;
                     td.textContent = displayValue;
                 } else {
