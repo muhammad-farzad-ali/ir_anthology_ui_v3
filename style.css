@@ -1,0 +1,36 @@
+.clickable-cell {
+    cursor: pointer;
+    transition: background-color 0.15s ease-in-out;
+}
+
+.clickable-cell:hover {
+    background-color: #f3f4f6;
+    text-decoration: underline;
+}
+
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+}
+
+.sortable-header:hover {
+    background-color: #e5e7eb;
+}
+
+th.sorted-asc::after {
+    content: " ▲";
+    font-size: 0.75em;
+}
+
+th.sorted-desc::after {
+    content: " ▼";
+    font-size: 0.75em;
+}
+
+#loading-spinner {
+    display: none;
+}
+
+#loading-spinner.active {
+    display: block;
+}
