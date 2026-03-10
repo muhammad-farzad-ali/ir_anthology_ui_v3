@@ -134,7 +134,7 @@ function buildQuery(state) {
     const offset = ((state.page || 1) - 1) * limit;
 
     let query = BASE_SPARQL_TEMPLATE;
-    query = query.replace('$ENTITY_TYPE', `"${entityType}"`);
+    query = query.replace('$ENTITY_TYPE', entityType);
     query = query.replace('$FILTERS', filters);
     query = query.replace('$ORDER', order);
     query = query.replace('$LIMIT', limit.toString());
