@@ -14,34 +14,29 @@ function renderFilterChips(filters) {
         return;
     }
 
-    container.innerHTML = '<div class="flex flex-wrap gap-2">';
+    let html = '<div class="flex flex-wrap gap-2">';
 
     filterEntries.forEach(([key, value]) => {
         if (!value) return;
+        html += `
+            <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm filter-chip" data-filter-key="${key}">
+                <span><strong>${key}:</strong> ${decodeURIComponent(value)}</span>
+                <button type="button" class="ml-1 text-blue-600 hover:text-blue-800 font-bold remove-chip-btn">&times;</button>
+            </div>
+        `;
+    });
 
-        const chip = document.createElement('div');
-        chip.className = 'inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm';
-        
-        const label = document.createElement('span');
-        label.innerHTML = `<strong>${key}:</strong> ${decodeURIComponent(value)}`;
-        
-        const removeBtn = document.createElement('button');
-        removeBtn.className = 'ml-1 text-blue-600 hover:text-blue-800 font-bold';
-        removeBtn.innerHTML = '&times;';
-        removeBtn.type = 'button';
-        removeBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
+    html += '</div>';
+    container.innerHTML = html;
+
+    container.querySelectorAll('.remove-chip-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const chip = e.target.closest('.filter-chip');
+            const key = chip.dataset.filterKey;
             console.log('Remove button clicked for key:', key);
             removeFilter(key);
         });
-
-        chip.appendChild(label);
-        chip.appendChild(removeBtn);
-        container.querySelector('div').appendChild(chip);
     });
-
-    container.innerHTML += '</div>';
 }
 
 function removeFilter(filterKey) {
