@@ -132,13 +132,19 @@ function handleCellClick(event) {
     const clickedColumn = cell.dataset.column;
     const rowUri = cell.dataset.uri;
 
+    console.log('Cell clicked:', { clickedColumn, rowUri });
+
     if (!rowUri) return;
 
     const currentState = window.AppState;
     const currentEntityType = currentState.entity;
 
+    console.log('Current state:', { currentEntityType, currentFilters: currentState.filters });
+
     const newFilters = { ...currentState.filters };
     newFilters[currentEntityType] = rowUri;
+
+    console.log('New filters:', newFilters);
 
     window.dispatchEvent(new CustomEvent('updateState', {
         detail: {
