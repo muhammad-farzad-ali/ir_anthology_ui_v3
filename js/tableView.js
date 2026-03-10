@@ -14,6 +14,18 @@ function renderTable(data, state) {
     renderTableBody(vars, bindings);
 }
 
+const COLUMN_WIDTHS = {
+    'Entity': 'w-auto min-w-[200px]',
+    'Publication': 'w-24',
+    'Venue': 'w-24',
+    'Author': 'w-24',
+    'Year': 'w-20',
+    '2020s': 'w-20',
+    '2010s': 'w-20',
+    '2000s': 'w-20',
+    'Pre2000s': 'w-24'
+};
+
 function renderTableHead(vars, state) {
     const thead = document.getElementById('table-head');
     if (!thead) return;
@@ -23,7 +35,8 @@ function renderTableHead(vars, state) {
         if (HIDDEN_COLUMNS.includes(varName)) return;
 
         const th = document.createElement('th');
-        th.className = 'px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header';
+        const widthClass = COLUMN_WIDTHS[varName] || 'w-24';
+        th.className = `px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header ${widthClass}`;
         th.textContent = varName;
         th.dataset.sortBy = varName;
 
@@ -64,6 +77,7 @@ function renderTableBody(vars, bindings) {
             if (HIDDEN_COLUMNS.includes(varName)) return;
 
             const td = document.createElement('td');
+            const widthClass = COLUMN_WIDTHS[varName] || 'w-24';
             const cellData = row[varName];
 
             if (cellData && cellData.value) {
@@ -76,20 +90,22 @@ function renderTableBody(vars, bindings) {
                     } else {
                         td.textContent = displayValue;
                     }
+                    td.className = `px-4 py-3 text-sm text-gray-900 break-words ${widthClass}`;
                 } else if (CLICKABLE_COLUMNS.includes(varName)) {
-                    td.className = 'clickable-cell text-blue-600';
+                    td.className = `clickable-cell text-blue-600 text-center ${widthClass}`;
                     td.dataset.column = varName;
                     td.dataset.uri = row['URI']?.value || '';
                     td.dataset.value = displayValue;
                     td.textContent = displayValue;
                 } else {
                     td.textContent = displayValue;
+                    td.className = `px-4 py-3 text-sm text-gray-900 text-center ${widthClass}`;
                 }
             } else {
                 td.textContent = '-';
+                td.className = `px-4 py-3 text-sm text-gray-900 text-center ${widthClass}`;
             }
 
-            td.className = td.className ? td.className : 'px-6 py-4 whitespace-nowrap text-sm text-gray-900';
             tr.appendChild(td);
         });
 
