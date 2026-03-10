@@ -57,6 +57,7 @@ function setState(newState, pushToHistory = true) {
         window.history.pushState(window.AppState, '', url);
     }
     
+    console.log('Dispatching stateChanged with:', window.AppState);
     document.dispatchEvent(new CustomEvent('stateChanged', { detail: window.AppState }));
 }
 

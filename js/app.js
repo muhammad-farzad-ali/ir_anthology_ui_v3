@@ -28,6 +28,8 @@ async function init() {
 
 async function loadData() {
     const state = getState();
+    console.log('loadData called, state.filters:', state.filters);
+    
     const loadingBody = document.getElementById('table-body');
     const loadingMeta = document.getElementById('meta-bar');
 
