@@ -130,22 +130,20 @@ function handleCellClick(event) {
     const cell = event.target.closest('.clickable-cell');
     if (!cell) return;
 
-    const columnName = cell.dataset.column;
-    const uri = cell.dataset.uri;
-    const value = cell.dataset.value;
+    const clickedColumn = cell.dataset.column;
+    const rowUri = cell.dataset.uri;
 
-    if (!uri) return;
+    if (!rowUri) return;
 
     const currentState = window.AppState;
-    const newFilters = { ...currentState.filters };
+    const currentEntityType = currentState.entity;
 
-    if (currentState.entity !== columnName) {
-        newFilters[currentState.entity] = uri;
-    }
+    const newFilters = { ...currentState.filters };
+    newFilters[currentEntityType] = rowUri;
 
     window.dispatchEvent(new CustomEvent('updateState', {
         detail: {
-            entity: columnName,
+            entity: clickedColumn,
             filters: newFilters,
             page: 1
         }
