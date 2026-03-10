@@ -16,6 +16,7 @@ async function init() {
     renderFilterChips(initialState.filters);
 
     document.addEventListener('updateState', (event) => {
+        console.log('updateState event received:', event.detail);
         setState(event.detail);
     });
 
