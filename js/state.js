@@ -48,7 +48,9 @@ function getState() {
 }
 
 function setState(newState, pushToHistory = true) {
+    console.log('setState called with:', newState);
     window.AppState = { ...window.AppState, ...newState };
+    console.log('window.AppState after setState:', window.AppState);
     
     if (pushToHistory) {
         const url = buildURLFromState(window.AppState);
