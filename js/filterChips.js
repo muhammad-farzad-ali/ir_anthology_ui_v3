@@ -1,11 +1,16 @@
 function renderFilterChips(filters) {
     const container = document.getElementById('filter-chips');
-    if (!container) return;
+    if (!container) {
+        console.error('Filter chips container not found');
+        return;
+    }
+
+    console.log('Rendering filter chips with filters:', filters);
 
     const filterEntries = Object.entries(filters);
 
     if (filterEntries.length === 0) {
-        container.innerHTML = '';
+        container.innerHTML = '<div class="text-sm text-gray-400 italic">No active filters</div>';
         return;
     }
 
