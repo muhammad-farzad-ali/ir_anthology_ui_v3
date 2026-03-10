@@ -28,8 +28,11 @@ function renderFilterChips(filters) {
         const removeBtn = document.createElement('button');
         removeBtn.className = 'ml-1 text-blue-600 hover:text-blue-800 font-bold';
         removeBtn.innerHTML = '&times;';
+        removeBtn.type = 'button';
         removeBtn.addEventListener('click', (e) => {
+            e.preventDefault();
             e.stopPropagation();
+            console.log('Remove button clicked for key:', key);
             removeFilter(key);
         });
 
