@@ -42,9 +42,12 @@ function renderFilterChips(filters) {
 }
 
 function removeFilter(filterKey) {
+    console.log('removeFilter called with key:', filterKey);
     const currentState = window.AppState;
+    console.log('Current state filters:', currentState.filters);
     const newFilters = { ...currentState.filters };
     delete newFilters[filterKey];
+    console.log('New filters after delete:', newFilters);
 
     window.dispatchEvent(new CustomEvent('updateState', {
         detail: {
