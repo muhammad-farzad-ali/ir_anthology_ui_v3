@@ -145,6 +145,7 @@ function handleCellClick(event) {
     newFilters[currentEntityType] = rowUri;
 
     console.log('New filters:', newFilters);
+    console.log('Dispatching updateState event...');
 
     window.dispatchEvent(new CustomEvent('updateState', {
         detail: {
