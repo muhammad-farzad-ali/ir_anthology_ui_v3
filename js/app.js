@@ -4,6 +4,7 @@ import { fetchWithCount } from './fetchService.js';
 import { renderTable } from './tableView.js';
 import { initSearch } from './search.js';
 import { renderPagination, updateMetaBar } from './pagination.js';
+import { renderFilterChips } from './filterChips.js';
 
 let currentFetchController = null;
 
@@ -12,6 +13,7 @@ async function init() {
     setState(initialState, false);
 
     initSearch();
+    renderFilterChips(initialState.filters);
 
     document.addEventListener('updateState', (event) => {
         setState(event.detail);
@@ -46,6 +48,7 @@ async function loadData() {
         const { data, total } = await fetchWithCount(sparqlQuery);
 
         renderTable(data, state);
+        renderFilterChips(state.filters);
         updateMetaBar(state.page, total, state.limit, state.entity);
         renderPagination(state.page, total, state.limit);
     } catch (error) {
