@@ -15,7 +15,7 @@ async function init() {
     initSearch();
     renderFilterChips(initialState.filters);
 
-    document.addEventListener('updateState', (event) => {
+    window.addEventListener('updateState', (event) => {
         console.log('updateState event received:', event.detail);
         setState(event.detail);
     });
