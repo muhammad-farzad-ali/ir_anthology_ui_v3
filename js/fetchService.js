@@ -40,6 +40,8 @@ function buildCountQuery(sparqlQuery) {
     return withoutLimit;
 }
 
+export { fetchEntities, fetchWithCount, buildCountQuery, SPARQL_ENDPOINT };
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { fetchEntities, fetchWithCount, buildCountQuery, SPARQL_ENDPOINT };
 }

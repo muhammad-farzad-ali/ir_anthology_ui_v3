@@ -151,6 +151,8 @@ function handleCellClick(event) {
     }));
 }
 
+export { renderTable, renderTableHead, renderTableBody, HIDDEN_COLUMNS, CLICKABLE_COLUMNS };
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { renderTable, renderTableHead, renderTableBody, HIDDEN_COLUMNS, CLICKABLE_COLUMNS };
 }

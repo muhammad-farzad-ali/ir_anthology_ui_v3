@@ -80,6 +80,8 @@ function clearSearch() {
     }));
 }
 
+export { parseSearchQuery, initSearch, handleSearch, clearSearch, VALID_FILTER_ENTITIES };
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { parseSearchQuery, initSearch, handleSearch, clearSearch, VALID_FILTER_ENTITIES };
 }

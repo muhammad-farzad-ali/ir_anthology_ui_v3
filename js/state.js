@@ -89,6 +89,8 @@ window.addEventListener('popstate', (event) => {
     }
 });
 
+export { DEFAULT_STATE, getInitialState, getState, setState, buildURLFromState, updateURLFromState };
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { DEFAULT_STATE, getInitialState, getState, setState, buildURLFromState, updateURLFromState };
 }

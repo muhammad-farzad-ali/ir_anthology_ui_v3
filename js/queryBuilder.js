@@ -143,6 +143,8 @@ function buildQuery(state) {
     return query;
 }
 
+export { BASE_SPARQL_TEMPLATE, buildQuery, buildFilters, buildOrder, VALID_ENTITIES, ENTITY_TYPE_TO_SPARQL_VAR };
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { BASE_SPARQL_TEMPLATE, buildQuery, buildFilters, buildOrder, VALID_ENTITIES, ENTITY_TYPE_TO_SPARQL_VAR };
 }

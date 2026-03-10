@@ -47,6 +47,8 @@ function updateMetaBar(currentPage, totalItems, limit, entity) {
     metaBar.textContent = `Showing ${start}-${end} of ${totalItems} ${entity}`;
 }
 
+export { renderPagination, updateMetaBar };
+
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { renderPagination, updateMetaBar };
 }
