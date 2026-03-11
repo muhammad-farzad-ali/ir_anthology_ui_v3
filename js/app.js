@@ -8,10 +8,14 @@ import { renderFilterChips } from './filterChips.js';
 let currentFetchController = null;
 let isLoadingMore = false;
 let totalCount = 0;
+let previousScrollPosition = 0;
+let previousLimit = 50;
 
 async function init() {
     const initialState = getInitialState();
+    initialState.limit = 50;
     setState(initialState, false);
+    previousLimit = 50;
 
     initSearch();
     renderFilterChips(initialState.filters);
@@ -22,12 +26,15 @@ async function init() {
     });
 
     document.addEventListener('stateChanged', async (event) => {
-        await loadData();
+        const currentState = getState();
+        const isLimitIncrease = currentState.limit > previousLimit;
+        previousLimit = currentState.limit;
+        await loadData(isLimitIncrease);
     });
 
     setupInfiniteScroll();
     
-    await loadData();
+    await loadData(false);
 }
 
 function setupInfiniteScroll() {
@@ -48,6 +55,7 @@ function setupInfiniteScroll() {
             
             if (currentLimit < totalCount || currentLimit < 1000) {
                 isLoadingMore = true;
+                previousScrollPosition = window.scrollY;
                 const newLimit = Math.min(currentLimit + 100, 1000);
                 
                 window.dispatchEvent(new CustomEvent('updateState', {
@@ -65,10 +73,14 @@ function setupInfiniteScroll() {
     observer.observe(sentinel);
 }
 
-async function loadData() {
+async function loadData(keepScrollPosition = false) {
     const state = getState();
     console.log('loadData called, state.filters:', state.filters);
     
+    if (!keepScrollPosition) {
+        previousScrollPosition = window.scrollY;
+    }
+
     const loadingBody = document.getElementById('table-body');
     if (loadingBody) {
         loadingBody.innerHTML = '<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">Loading...</td></tr>';
@@ -88,6 +100,12 @@ async function loadData() {
 
         renderTable(data, state);
         renderFilterChips(state.filters);
+
+        if (keepScrollPosition && previousScrollPosition > 0) {
+            requestAnimationFrame(() => {
+                window.scrollTo(0, previousScrollPosition);
+            });
+        }
     } catch (error) {
         if (error.name === 'AbortError') {
             return;
