@@ -69,8 +69,8 @@ function removeFilterValue(filterKey, filterIndex) {
     }));
 }
 
-export { renderFilterChips, removeFilter };
+export { renderFilterChips, removeFilterValue };
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { renderFilterChips, removeFilter };
+    module.exports = { renderFilterChips, removeFilterValue };
 }
