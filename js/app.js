@@ -2,7 +2,7 @@ import { getInitialState, setState, getState, updateURLFromState } from './state
 import { buildQuery } from './queryBuilder.js';
 import { fetchWithCount, setEndpoint } from './fetchService.js';
 import { renderTable } from './tableView.js';
-import { initSearch } from './search.js';
+import { initSearch, updateSearchInside } from './search.js';
 import { renderFilterChips } from './filterChips.js';
 import { initSettings } from './settings.js';
 
@@ -37,6 +37,7 @@ async function init() {
         const currentState = getState();
         const isLimitIncrease = currentState.limit > previousLimit;
         previousLimit = currentState.limit;
+        updateSearchInside(currentState.entity);
         await loadData(isLimitIncrease);
     });
 

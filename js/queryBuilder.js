@@ -123,12 +123,12 @@ function buildFilters(filters, filterMode = 'label') {
             const labelVar = getLabelVar(key);
             if (!labelVar) continue;
 
-            const lowercaseValues = values.map(v => {
+            const containsClauses = values.map(v => {
                 const str = String(v).toLowerCase().replace(/'/g, "\\'");
-                return `"${str}"`;
+                return `CONTAINS(LCASE(${labelVar}), LCASE("${str}"))`;
             });
 
-            filterClauses.push(`FILTER(LCASE(${labelVar}) IN (${lowercaseValues.join(',')}))`);
+            filterClauses.push(`FILTER(${containsClauses.join(' || ')})`);
         }
     }
 

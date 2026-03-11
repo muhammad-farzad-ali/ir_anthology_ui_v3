@@ -5,24 +5,8 @@ function parseSearchQuery(input) {
     const parts = input.split(',').map(p => p.trim()).filter(p => p);
     
     for (const part of parts) {
-        const colonIndex = part.indexOf(':');
-        if (colonIndex > -1) {
-            const entity = part.substring(0, colonIndex).trim();
-            const value = part.substring(colonIndex + 1).trim();
-            
-            if (VALID_FILTER_ENTITIES.includes(entity)) {
-                if (!filters[entity]) {
-                    filters[entity] = [];
-                }
-                if (value) {
-                    filters[entity].push(value);
-                }
-            }
-        } else if (part) {
-            if (!filters['Author']) {
-                filters['Author'] = [];
-            }
-            filters['Author'].push(part);
+        if (part) {
+            filters[part] = [part];
         }
     }
     
@@ -35,19 +19,26 @@ function initSearch() {
 
     searchInput.addEventListener('keydown', (event) => {
         if (event.key === 'Enter') {
-            handleSearch(searchInput.value);
+            handleSearch(searchInput.value, searchInput.dataset.searchInside);
         }
     });
 }
 
-function handleSearch(input) {
-    const parsedFilters = parseSearchQuery(input);
+function handleSearch(input, searchInside) {
     const currentState = window.AppState;
     const newFilters = { ...currentState.filters };
-
-    for (const [entity, values] of Object.entries(parsedFilters)) {
-        if (values && values.length > 0) {
-            newFilters[entity] = values;
+    
+    const filterKey = searchInside || currentState.entity || 'Author';
+    
+    if (!newFilters[filterKey]) {
+        newFilters[filterKey] = [];
+    }
+    
+    const parts = input.split(',').map(p => p.trim()).filter(p => p);
+    
+    for (const part of parts) {
+        if (part && !newFilters[filterKey].includes(part)) {
+            newFilters[filterKey].push(part);
         }
     }
 
@@ -73,8 +64,15 @@ function clearSearch() {
     }));
 }
 
-export { parseSearchQuery, initSearch, handleSearch, clearSearch, VALID_FILTER_ENTITIES };
+function updateSearchInside(entityType) {
+    const searchInput = document.getElementById('search-input');
+    if (searchInput) {
+        searchInput.dataset.searchInside = entityType;
+    }
+}
+
+export { parseSearchQuery, initSearch, handleSearch, clearSearch, updateSearchInside, VALID_FILTER_ENTITIES };
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { parseSearchQuery, initSearch, handleSearch, clearSearch, VALID_FILTER_ENTITIES };
+    module.exports = { parseSearchQuery, initSearch, handleSearch, clearSearch, updateSearchInside, VALID_FILTER_ENTITIES };
 }
