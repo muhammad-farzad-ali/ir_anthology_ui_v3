@@ -36,25 +36,48 @@ function renderTableHead(vars, state) {
 
         const th = document.createElement('th');
         const widthClass = COLUMN_WIDTHS[varName] || 'w-24';
-        th.className = `px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider sortable-header ${widthClass}`;
-        th.textContent = varName;
-        th.dataset.sortBy = varName;
+        th.className = `${widthClass}`;
 
+        const textBtn = document.createElement('button');
+        textBtn.className = 'text-left text-xs font-medium tracking-wider';
         if (state.entity === varName) {
-            th.classList.add('font-bold');
-            th.style.color = '#1d4ed8';
+            textBtn.classList.add('font-bold');
+            textBtn.style.color = '#1d4ed8';
         }
+        textBtn.textContent = varName;
+        textBtn.addEventListener('click', () => handleEntityChange(varName));
 
+        const sortBtn = document.createElement('button');
+        sortBtn.className = 'ml-1 text-gray-400 hover:text-gray-600';
+        sortBtn.dataset.sortBy = varName;
         if (state.sort_by === varName) {
-            th.classList.add(state.order === 'asc' ? 'sorted-asc' : 'sorted-desc');
+            sortBtn.textContent = state.order === 'asc' ? '▲' : '▼';
+            sortBtn.classList.add('text-blue-600');
+        } else {
+            sortBtn.textContent = '↕';
         }
+        sortBtn.addEventListener('click', () => handleSortClick(varName));
 
-        th.addEventListener('click', () => handleSortClick(varName));
+        th.appendChild(textBtn);
+        th.appendChild(sortBtn);
         headerRow.appendChild(th);
     });
 
     thead.innerHTML = '';
     thead.appendChild(headerRow);
+}
+
+function handleEntityChange(varName) {
+    const currentState = window.AppState;
+    if (currentState.entity === varName) return;
+
+    window.dispatchEvent(new CustomEvent('updateState', {
+        detail: {
+            entity: varName,
+            filters: {},
+            page: 1
+        }
+    }));
 }
 
 function renderTableBody(vars, bindings) {
