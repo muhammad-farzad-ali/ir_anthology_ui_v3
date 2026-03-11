@@ -1,13 +1,11 @@
 import { getInitialState, setState, getState, updateURLFromState } from './state.js';
 import { buildQuery } from './queryBuilder.js';
 import { fetchWithCount } from './fetchService.js';
-import { renderTable, appendTableRows } from './tableView.js';
+import { renderTable } from './tableView.js';
 import { initSearch } from './search.js';
-import { renderPagination } from './pagination.js';
 import { renderFilterChips } from './filterChips.js';
 
 let currentFetchController = null;
-let currentData = null;
 let isLoadingMore = false;
 let totalCount = 0;
 
@@ -24,12 +22,12 @@ async function init() {
     });
 
     document.addEventListener('stateChanged', async (event) => {
-        await loadData(false);
+        await loadData();
     });
 
     setupInfiniteScroll();
     
-    await loadData(false);
+    await loadData();
 }
 
 function setupInfiniteScroll() {
@@ -44,13 +42,21 @@ function setupInfiniteScroll() {
 
     const observer = new IntersectionObserver(async (entries) => {
         const entry = entries[0];
-        if (entry.isIntersecting && !isLoadingMore && currentData) {
+        if (entry.isIntersecting && !isLoadingMore) {
             const state = getState();
-            const loadedCount = currentData.results.bindings.length;
+            const currentLimit = state.limit;
             
-            if (loadedCount < totalCount) {
+            if (currentLimit < totalCount || currentLimit < 1000) {
                 isLoadingMore = true;
-                await loadMoreData();
+                const newLimit = Math.min(currentLimit + 100, 1000);
+                
+                window.dispatchEvent(new CustomEvent('updateState', {
+                    detail: {
+                        limit: newLimit,
+                        page: 1
+                    }
+                }));
+                
                 isLoadingMore = false;
             }
         }
@@ -59,15 +65,13 @@ function setupInfiniteScroll() {
     observer.observe(sentinel);
 }
 
-async function loadData(isAppend = false) {
+async function loadData() {
     const state = getState();
     console.log('loadData called, state.filters:', state.filters);
     
-    if (!isAppend) {
-        const loadingBody = document.getElementById('table-body');
-        if (loadingBody) {
-            loadingBody.innerHTML = '<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">Loading...</td></tr>';
-        }
+    const loadingBody = document.getElementById('table-body');
+    if (loadingBody) {
+        loadingBody.innerHTML = '<tr><td colspan="10" class="px-6 py-4 text-center text-gray-500">Loading...</td></tr>';
     }
 
     if (currentFetchController) {
@@ -80,16 +84,10 @@ async function loadData(isAppend = false) {
         console.log('SPARQL Query:', sparqlQuery);
         const { data, total } = await fetchWithCount(sparqlQuery);
         
-        currentData = data;
         totalCount = total;
 
-        if (isAppend) {
-            appendTableRows(data, state);
-        } else {
-            renderTable(data, state);
-            renderFilterChips(state.filters);
-            renderPagination(state.page, total, state.limit);
-        }
+        renderTable(data, state);
+        renderFilterChips(state.filters);
     } catch (error) {
         if (error.name === 'AbortError') {
             return;
@@ -103,21 +101,8 @@ async function loadData(isAppend = false) {
     }
 }
 
-async function loadMoreData() {
-    const state = getState();
-    const newLimit = state.limit + 100;
-    
-    window.dispatchEvent(new CustomEvent('updateState', {
-        detail: {
-            limit: newLimit
-        }
-    }));
-    
-    await loadData(true);
-}
-
 document.addEventListener('DOMContentLoaded', init);
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { init, loadData, loadMoreData };
+    module.exports = { init, loadData };
 }
