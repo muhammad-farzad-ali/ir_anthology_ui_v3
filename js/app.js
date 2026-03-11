@@ -22,6 +22,18 @@ async function init() {
     initSettings();
     renderFilterChips(initialState.filters);
 
+    document.getElementById('reset-btn')?.addEventListener('click', () => {
+        const defaultState = {
+            entity: 'Author',
+            filters: {},
+            sort_by: 'Publication',
+            order: 'desc',
+            page: 1,
+            limit: 50
+        };
+        setState(defaultState);
+    });
+
     window.addEventListener('updateState', (event) => {
         console.log('updateState event received:', event.detail);
         setState(event.detail);
