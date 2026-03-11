@@ -52,7 +52,6 @@ async function loadData() {
 
         renderTable(data, state);
         renderFilterChips(state.filters);
-        updateMetaBar(state.page, total, state.limit, state.entity);
         renderPagination(state.page, total, state.limit);
     } catch (error) {
         if (error.name === 'AbortError') {
