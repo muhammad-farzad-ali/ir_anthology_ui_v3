@@ -48,6 +48,7 @@ async function loadData() {
 
     try {
         const sparqlQuery = buildQuery(state);
+        console.log('SPARQL Query:', sparqlQuery);
         const { data, total } = await fetchWithCount(sparqlQuery);
 
         renderTable(data, state);
