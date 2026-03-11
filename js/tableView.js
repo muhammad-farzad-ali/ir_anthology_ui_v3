@@ -40,6 +40,11 @@ function renderTableHead(vars, state) {
         th.textContent = varName;
         th.dataset.sortBy = varName;
 
+        if (state.entity === varName) {
+            th.classList.add('font-bold');
+            th.style.color = '#1d4ed8';
+        }
+
         if (state.sort_by === varName) {
             th.classList.add(state.order === 'asc' ? 'sorted-asc' : 'sorted-desc');
         }
