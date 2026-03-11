@@ -93,6 +93,17 @@ const ENTITY_TYPE_TO_SPARQL_VAR = {
     'Pre2000s': '?Pre2000s_URI'
 };
 
+const ENTITY_TYPE_TO_LABEL_VAR = {
+    'Publication': '?publication_label',
+    'Venue': '?venue_label',
+    'Author': '?author_label',
+    'Year': '?year_label',
+    '2020s': '?2020s_label',
+    '2010s': '?2010s_label',
+    '2000s': '?2000s_label',
+    'Pre2000s': '?Pre2000s_label'
+};
+
 const VALID_ENTITIES = ['Author', 'Venue', 'Publication', 'Year', '2020s', '2010s', '2000s', 'Pre2000s'];
 
 function buildFilters(filters) {
@@ -102,18 +113,18 @@ function buildFilters(filters) {
 
     const filterClauses = [];
 
-    for (const [key, value] of Object.entries(filters)) {
-        if (!value) continue;
+    for (const [key, values] of Object.entries(filters)) {
+        if (!values || !Array.isArray(values) || values.length === 0) continue;
 
-        const sparqlVar = ENTITY_TYPE_TO_SPARQL_VAR[key];
-        if (!sparqlVar) continue;
+        const labelVar = ENTITY_TYPE_TO_LABEL_VAR[key];
+        if (!labelVar) continue;
 
-        if (value.startsWith('http://') || value.startsWith('https://')) {
-            filterClauses.push(`FILTER(${sparqlVar} = <${value}>)`);
-        } else {
-            const escapedValue = value.replace(/'/g, "\\'");
-            filterClauses.push(`FILTER(${sparqlVar} ex:label "${escapedValue}")`);
-        }
+        const lowercaseValues = values.map(v => {
+            const str = String(v).toLowerCase().replace(/'/g, "\\'");
+            return `"${str}"`;
+        });
+
+        filterClauses.push(`FILTER(LCASE(${labelVar}) IN (${lowercaseValues.join(',')}))`);
     }
 
     return filterClauses.length > 0 ? filterClauses.join('\n  ') : '';

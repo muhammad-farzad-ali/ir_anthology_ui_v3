@@ -175,10 +175,11 @@ function handleCellClick(event) {
 
     const clickedColumn = cell.dataset.column;
     const rowUri = cell.dataset.uri;
+    const rowValue = cell.dataset.value;
 
-    console.log('Cell clicked:', { clickedColumn, rowUri });
+    console.log('Cell clicked:', { clickedColumn, rowUri, rowValue });
 
-    if (!rowUri) return;
+    if (!rowUri && !rowValue) return;
 
     const currentState = window.AppState;
     const currentEntityType = currentState.entity;
@@ -186,7 +187,19 @@ function handleCellClick(event) {
     console.log('Current state:', { currentEntityType, currentFilters: currentState.filters });
 
     const newFilters = { ...currentState.filters };
-    newFilters[currentEntityType] = rowUri;
+    
+    if (!newFilters[currentEntityType]) {
+        newFilters[currentEntityType] = [];
+    }
+    if (!Array.isArray(newFilters[currentEntityType])) {
+        newFilters[currentEntityType] = [newFilters[currentEntityType]];
+    }
+    
+    if (rowUri && !newFilters[currentEntityType].includes(rowUri)) {
+        newFilters[currentEntityType].push(rowUri);
+    } else if (rowValue && !newFilters[currentEntityType].includes(rowValue)) {
+        newFilters[currentEntityType].push(rowValue);
+    }
 
     console.log('New filters:', newFilters);
     console.log('Dispatching updateState event...');

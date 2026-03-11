@@ -1,23 +1,32 @@
 const VALID_FILTER_ENTITIES = ['Author', 'Venue', 'Publication', 'Year', '2020s', '2010s', '2000s', 'Pre2000s'];
 
 function parseSearchQuery(input) {
-    const trimmed = input.trim();
+    const filters = {};
+    const parts = input.split(',').map(p => p.trim()).filter(p => p);
     
-    const colonIndex = trimmed.indexOf(':');
-    if (colonIndex > -1) {
-        const entity = trimmed.substring(0, colonIndex).trim();
-        const value = trimmed.substring(colonIndex + 1).trim();
-        
-        if (VALID_FILTER_ENTITIES.includes(entity)) {
-            return { entity, value };
+    for (const part of parts) {
+        const colonIndex = part.indexOf(':');
+        if (colonIndex > -1) {
+            const entity = part.substring(0, colonIndex).trim();
+            const value = part.substring(colonIndex + 1).trim();
+            
+            if (VALID_FILTER_ENTITIES.includes(entity)) {
+                if (!filters[entity]) {
+                    filters[entity] = [];
+                }
+                if (value) {
+                    filters[entity].push(value);
+                }
+            }
+        } else if (part) {
+            if (!filters['Author']) {
+                filters['Author'] = [];
+            }
+            filters['Author'].push(part);
         }
     }
-
-    if (trimmed) {
-        return { entity: null, value: trimmed };
-    }
-
-    return { entity: null, value: '' };
+    
+    return filters;
 }
 
 function initSearch() {
@@ -32,38 +41,22 @@ function initSearch() {
 }
 
 function handleSearch(input) {
-    const parsed = parseSearchQuery(input);
+    const parsedFilters = parseSearchQuery(input);
     const currentState = window.AppState;
+    const newFilters = { ...currentState.filters };
 
-    if (parsed.entity && parsed.value) {
-        const newFilters = { ...currentState.filters };
-        newFilters[parsed.entity] = parsed.value;
-
-        window.dispatchEvent(new CustomEvent('updateState', {
-            detail: {
-                filters: newFilters,
-                page: 1
-            }
-        }));
-    } else if (parsed.value) {
-        const filterKey = currentState.entity;
-        const newFilters = { ...currentState.filters };
-        newFilters[filterKey] = parsed.value;
-
-        window.dispatchEvent(new CustomEvent('updateState', {
-            detail: {
-                filters: newFilters,
-                page: 1
-            }
-        }));
-    } else {
-        window.dispatchEvent(new CustomEvent('updateState', {
-            detail: {
-                filters: {},
-                page: 1
-            }
-        }));
+    for (const [entity, values] of Object.entries(parsedFilters)) {
+        if (values && values.length > 0) {
+            newFilters[entity] = values;
+        }
     }
+
+    window.dispatchEvent(new CustomEvent('updateState', {
+        detail: {
+            filters: newFilters,
+            page: 1
+        }
+    }));
 }
 
 function clearSearch() {
