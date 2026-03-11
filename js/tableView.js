@@ -40,13 +40,13 @@ function renderTableHead(vars, state) {
 
         const textBtn = document.createElement('button');
         textBtn.className = 'text-left text-xs font-medium tracking-wider';
-        textBtn.dataset.column = varName;
+        textBtn.dataset.columnHeading = varName;
         if (state.entity === varName) {
             textBtn.classList.add('font-bold');
             textBtn.style.color = '#1d4ed8';
         }
         textBtn.textContent = varName;
-        textBtn.addEventListener('click', () => handleEntityChange(varName));
+        textBtn.addEventListener('click', (e) => handleEntityChange(e.target.dataset.columnHeading));
 
         const sortBtn = document.createElement('button');
         sortBtn.className = 'ml-1 text-gray-400 hover:text-gray-600';
@@ -74,9 +74,7 @@ function handleEntityChange(varName) {
 
     window.dispatchEvent(new CustomEvent('updateState', {
         detail: {
-            entity: varName,
-            filters: {},
-            page: 1
+            entity: varName
         }
     }));
 }
@@ -126,7 +124,7 @@ function renderTableBody(vars, bindings, state) {
                     const entityTitle = row['Entity']?.value || displayValue;
                     const entityUri = row['URI']?.value || '';
                     td.className = `clickable-cell text-blue-600 text-center ${widthClass}`;
-                    td.dataset.column = varName;
+                    td.dataset.entityColumn = varName;
                     td.dataset.entityTitle = entityTitle;
                     td.dataset.entityUri = entityUri;
                     td.dataset.entityType = currentEntityType;
@@ -179,7 +177,7 @@ function handleCellClick(event) {
     const cell = event.target.closest('.clickable-cell');
     if (!cell) return;
 
-    const clickedColumn = cell.dataset.column;
+    const clickedColumn = cell.dataset.entityColumn;
     const entityType = cell.dataset.entityType;
     const entityTitle = cell.dataset.entityTitle;
 
@@ -190,15 +188,15 @@ function handleCellClick(event) {
     const currentState = window.AppState;
     const newFilters = { ...currentState.filters };
     
-    if (!newFilters[clickedColumn]) {
-        newFilters[clickedColumn] = [];
+    if (!newFilters[entityType]) {
+        newFilters[entityType] = [];
     }
-    if (!Array.isArray(newFilters[clickedColumn])) {
-        newFilters[clickedColumn] = [newFilters[clickedColumn]];
+    if (!Array.isArray(newFilters[entityType])) {
+        newFilters[entityType] = [newFilters[entityType]];
     }
     
-    if (entityTitle && !newFilters[clickedColumn].includes(entityTitle)) {
-        newFilters[clickedColumn].push(entityTitle);
+    if (entityTitle && !newFilters[entityType].includes(entityTitle)) {
+        newFilters[entityType].push(entityTitle);
     }
 
     console.log('New filters:', newFilters);
