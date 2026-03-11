@@ -200,8 +200,62 @@ function handleCellClick(event) {
     }));
 }
 
-export { renderTable, renderTableHead, renderTableBody, HIDDEN_COLUMNS, CLICKABLE_COLUMNS };
+function appendTableRows(data, state) {
+    if (!data || !data.head || !data.head.vars) return;
+
+    const vars = data.head.vars;
+    const bindings = data.results.bindings;
+    const tbody = document.getElementById('table-body');
+    if (!tbody) return;
+
+    const existingRowCount = tbody.querySelectorAll('tr').length;
+
+    bindings.forEach((row, rowIndex) => {
+        const tr = document.createElement('tr');
+        tr.className = (existingRowCount + rowIndex) % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+
+        vars.forEach(varName => {
+            if (HIDDEN_COLUMNS.includes(varName)) return;
+
+            const td = document.createElement('td');
+            const widthClass = COLUMN_WIDTHS[varName] || 'w-24';
+            const cellData = row[varName];
+
+            if (cellData && cellData.value) {
+                let displayValue = cellData.value;
+
+                if (varName === 'Entity') {
+                    const uri = row['URI']?.value;
+                    if (uri) {
+                        td.innerHTML = `<a href="${uri}" target="_blank" class="text-blue-600 hover:underline">${displayValue}</a>`;
+                    } else {
+                        td.textContent = displayValue;
+                    }
+                    td.className = `px-4 py-3 text-sm text-gray-900 break-words ${widthClass}`;
+                } else if (CLICKABLE_COLUMNS.includes(varName)) {
+                    td.className = `clickable-cell text-blue-600 text-center ${widthClass}`;
+                    td.dataset.column = varName;
+                    td.dataset.uri = row['URI']?.value || '';
+                    td.dataset.value = displayValue;
+                    td.textContent = displayValue;
+                } else {
+                    td.textContent = displayValue;
+                    td.className = `px-4 py-3 text-sm text-gray-900 text-center ${widthClass}`;
+                }
+            } else {
+                td.textContent = '-';
+                td.className = `px-4 py-3 text-sm text-gray-900 text-center ${widthClass}`;
+            }
+
+            tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+    });
+}
+
+export { renderTable, renderTableHead, renderTableBody, appendTableRows, HIDDEN_COLUMNS, CLICKABLE_COLUMNS };
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { renderTable, renderTableHead, renderTableBody, HIDDEN_COLUMNS, CLICKABLE_COLUMNS };
+    module.exports = { renderTable, renderTableHead, renderTableBody, appendTableRows, HIDDEN_COLUMNS, CLICKABLE_COLUMNS };
 }
