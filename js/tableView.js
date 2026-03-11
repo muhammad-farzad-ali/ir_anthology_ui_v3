@@ -178,10 +178,11 @@ function handleCellClick(event) {
     const cell = event.target.closest('.clickable-cell');
     if (!cell) return;
 
+    const clickedColumn = cell.dataset.column;
     const entityType = cell.dataset.entityType;
     const entityTitle = cell.dataset.entityTitle;
 
-    console.log('Cell clicked:', { entityType, entityTitle });
+    console.log('Cell clicked:', { clickedColumn, entityType, entityTitle });
 
     if (!entityTitle) return;
 
@@ -204,7 +205,7 @@ function handleCellClick(event) {
 
     window.dispatchEvent(new CustomEvent('updateState', {
         detail: {
-            entity: entityType,
+            entity: clickedColumn,
             filters: newFilters,
             page: 1
         }
