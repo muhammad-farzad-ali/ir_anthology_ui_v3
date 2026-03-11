@@ -14,23 +14,27 @@ function renderFilterChips(filters) {
         return;
     }
 
-    let html = '<div class="flex flex-wrap gap-2">';
+    let html = '';
 
     filterEntries.forEach(([key, values]) => {
         if (!values || !Array.isArray(values)) return;
+        
+        html += `<div class="flex flex-wrap gap-2 mb-2 items-center">`;
+        html += `<span class="text-sm text-gray-600 font-medium">${key}:</span>`;
         
         values.forEach((value, index) => {
             if (!value) return;
             html += `
                 <div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm filter-chip" data-filter-key="${key}" data-filter-index="${index}">
-                    <span><strong>${key}:</strong> ${decodeURIComponent(value)}</span>
+                    <span>${decodeURIComponent(value)}</span>
                     <button type="button" class="ml-1 text-blue-600 hover:text-blue-800 font-bold remove-chip-btn">&times;</button>
                 </div>
             `;
         });
+        
+        html += `</div>`;
     });
 
-    html += '</div>';
     container.innerHTML = html;
 
     container.querySelectorAll('.remove-chip-btn').forEach(btn => {
