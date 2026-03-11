@@ -36,7 +36,10 @@ function getInitialState() {
     for (const [key, value] of params.entries()) {
         if (key.startsWith('filter_')) {
             const filterKey = key.replace('filter_', '');
-            state.filters[filterKey] = decodeURIComponent(value);
+            if (!state.filters[filterKey]) {
+                state.filters[filterKey] = [];
+            }
+            state.filters[filterKey].push(decodeURIComponent(value));
         }
     }
 
@@ -70,9 +73,13 @@ function buildURLFromState(state) {
     params.set('page', state.page);
     params.set('limit', state.limit);
 
-    for (const [key, value] of Object.entries(state.filters)) {
-        if (value) {
-            params.set(`filter_${key}`, value);
+    for (const [key, values] of Object.entries(state.filters)) {
+        if (values && Array.isArray(values)) {
+            values.forEach(value => {
+                if (value) {
+                    params.append(`filter_${key}`, encodeURIComponent(value));
+                }
+            });
         }
     }
 

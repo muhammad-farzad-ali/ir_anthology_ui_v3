@@ -2,157 +2,174 @@
 
 A lightweight, frontend-only BI tool connected directly to a SPARQL endpoint. This application dynamically renders data tables based on SPARQL query responses, making it completely agnostic to the specific query structure.
 
+## Live Demo
+
+**GitHub Pages**: [https://muhammad-farzad-ali.github.io/ir_anthology_ui_v3/](https://muhammad-farzad-ali.github.io/ir_anthology_ui_v3/)
+
+## Features
+
+- **Dynamic Table Rendering**: Automatically generates columns from SPARQL `head.vars`
+- **Interactive Filtering**: Click table cells to add filters (multiple values supported)
+- **Search**: Partial text matching using CONTAINS
+- **Sorting**: Click column headers to sort ascending/descending
+- **Infinite Scroll**: Loads more data as you scroll
+- **URL Sync**: All state synced with URL parameters (shareable links)
+- **Settings Panel**: Configure SPARQL endpoint
+- **Reset**: Clear all filters with one click
+
+## Quick Start
+
+1. Clone the repository
+2. Open `index.html` in a browser (or serve via local server)
+3. The app loads data from the default SPARQL endpoint
+
+```bash
+# Using Python
+python -m http.server 8000
+
+# Using Node.js
+npx serve
+```
+
 ## Architecture Overview
 
-This project follows a **modular architecture** designed to be simple enough for a junior developer to understand and extend. The key design principle is **dynamic table rendering** - by reading the `head.vars` array from the SPARQL JSON response, the UI automatically renders whatever columns the query returns.
+This project follows a **modular architecture** designed to be simple enough for a junior developer to understand and extend.
 
 ### Project Structure
 
 ```
 ir_anthology_ui_v3/
-├── index.html          # Main HTML file with Tailwind CSS
-├── style.css          # Custom styles for table interactions
+├── index.html              # Main HTML with Tailwind CSS
+├── style.css              # Custom table styles
+├── PROGRESS.md            # Development progress notes
+├── ABSTRACT.md           # High-level overview
+├── IMPLEMENTATION.md     # Detailed documentation
+├── README.md             # This file
 ├── js/
-│   ├── app.js         # Main entry point - ties all modules together
-│   ├── state.js       # Central state management & URL syncing
-│   ├── queryBuilder.js # SPARQL query generation
-│   ├── fetchService.js # API communication with SPARQL endpoint
-│   ├── tableView.js   # Dynamic table rendering (core feature)
-│   ├── search.js      # Search input handling
-│   └── pagination.js  # Pagination controls
-└── README.md
+│   ├── app.js            # Main entry point
+│   ├── state.js          # State & URL sync
+│   ├── queryBuilder.js   # SPARQL query generation
+│   ├── fetchService.js   # API communication
+│   ├── tableView.js     # Dynamic table rendering
+│   ├── search.js        # Search handling
+│   ├── filterChips.js   # Filter chip display
+│   └── settings.js      # Settings panel
+└── .github/workflows/
+    └── deploy.yml        # GitHub Pages deployment
 ```
 
-### How It Works
+## State Structure
 
-1. **State Management** (`state.js`): Maintains application state in sync with URL query parameters
-2. **Query Building** (`queryBuilder.js`): Dynamically builds SPARQL queries based on current state
-3. **Data Fetching** (`fetchService.js`): Sends queries to the SPARQL endpoint
-4. **Dynamic Rendering** (`tableView.js`): Reads `data.head.vars` from SPARQL response and auto-generates table columns
-5. **Interactivity**: Search, sorting, and click-to-filter features update state and URL
-
-## Module Documentation
-
-### js/state.js
-
-Manages the application state and syncs it with URL query parameters.
-
-**State Structure:**
 ```javascript
 {
-    entity: 'Author',      // Current entity type (Author, Venue, Publication, Year, etc.)
-    filters: {},          // Active filters as { entityType: value }
-    sort_by: 'Publication', // Column to sort by
-    order: 'desc',        // Sort direction ('asc' or 'desc')
-    page: 1,              // Current page number
-    limit: 100            // Results per page
+    entity: 'Author',           // Current entity type
+    filters: {                 // Active filters
+        'Author': ['James'],
+        'Year': ['2024']
+    },
+    sort_by: 'Publication',   // Sort column
+    order: 'desc',            // Sort direction
+    page: 1,                  // Current page
+    limit: 50                 // Results per page
 }
 ```
 
-**Key Functions:**
-- `getInitialState()`: Reads state from URL on page load
-- `setState(newState)`: Updates state and URL
-- `buildURLFromState(state)`: Generates URL from state object
+## Usage Guide
 
-### js/queryBuilder.js
+### Searching
 
-Builds SPARQL queries dynamically based on application state.
+Type in the search bar and press Enter:
+- Values are matched against the current entity type using CONTAINS
+- Multiple values separated by commas
 
-**Base Query Template:**
-The module contains the main SPARQL query that counts publications, venues, authors, and years for each entity type.
+### Changing Entity
 
-**Key Functions:**
-- `buildQuery(state)`: Returns a complete SPARQL string with state values injected
-- `buildFilters(filters)`: Generates FILTER clauses for URI-based filtering
-- `buildOrder(sort_by, order)`: Generates ORDER BY clause
+Click on column header text (e.g., "Author", "Year") to switch entity type.
 
-### js/tableView.js
+### Filtering
 
-**The Core Dynamic Feature**: This module reads `data.head.vars` from the SPARQL JSON response and automatically generates table columns. If you modify the SELECT statement in the SPARQL query, the UI updates automatically.
+Click on any table cell to add a filter:
+- Filter key = current entity type
+- Filter value = clicked cell value
 
-**Key Features:**
-- Auto-generates `<th>` elements from `data.head.vars`
-- Auto-generates `<td>` elements from `data.results.bindings`
-- Hides specific columns (like 'URI') from display
-- Makes certain columns clickable for pivot/navigation
-- Adds sorting functionality to headers
+### Sorting
 
-**Adding New Columns:**
-To add a new column to the UI:
-1. Modify the SPARQL query in `queryBuilder.js` to include the new variable
-2. The table automatically renders it - no JavaScript changes needed
+Click the sort arrow (↕) in column headers to toggle ascending/descending.
 
-### js/search.js
+### Settings
 
-Handles search input with format: `EntityType: searchTerm`
+Click the gear icon to change the SPARQL endpoint URL.
 
-**Examples:**
-- `Author: John` - Filter for authors named John
-- `Venue: SIGIR` - Filter for SIGIR venue
+### Reset
 
-### js/fetchService.js
+Click the refresh icon to clear all filters and reset to default state.
 
-Communicates with the SPARQL endpoint.
+## Module Documentation
 
-**Configuration:**
+See [IMPLEMENTATION.md](IMPLEMENTATION.md) for detailed documentation on each module.
+
+## Events System
+
+The app uses CustomEvents for communication:
+
 ```javascript
-const SPARQL_ENDPOINT = 'http://webislab33.medien.uni-weimar.de:7018/sparql/';
+// Update state
+window.dispatchEvent(new CustomEvent('updateState', {
+    detail: { entity: 'Year', filters: { Year: ['2024'] } }
+}));
+
+// Listen for state changes
+document.addEventListener('stateChanged', (e) => {
+    console.log('State updated:', e.detail);
+});
 ```
 
-### js/pagination.js
+## SPARQL Query
 
-Handles pagination UI and meta text display.
+The app generates dynamic SPARQL queries. Example output:
 
-## Extending the Application
+```sparql
+PREFIX ex: <https://ir.webis.de/kg/>
 
-### Adding a New Entity Type
-
-1. Add to `VALID_ENTITIES` array in `queryBuilder.js`
-2. Add the SPARQL variable mapping in `ENTITY_TYPE_TO_SPARQL_VAR`
-3. Update `VALID_FILTER_ENTITIES` in `search.js` if needed
-
-### Modifying the SPARQL Query
-
-1. Edit `BASE_SPARQL_TEMPLATE` in `queryBuilder.js`
-2. The UI will automatically reflect any new columns via `data.head.vars`
-
-### Adding New UI Features
-
-1. Add the feature to the appropriate module
-2. Emit a `stateChanged` event or dispatch `updateState` to trigger data reload
-
-## Events
-
-The application uses CustomEvents for communication:
-
-- `stateChanged`: Fired when state is updated (triggers data reload)
-- `updateState`: Dispatch on window to update state
-
-Example:
-```javascript
-window.dispatchEvent(new CustomEvent('updateState', {
-    detail: { sort_by: 'Year', order: 'asc' }
-}));
+SELECT (?entity_label AS ?Entity)
+ (?entity_URI AS ?URI)
+  (COUNT(DISTINCT ?publication_label) AS ?Publication)
+  ...
+WHERE {
+  VALUES ?entityType { "Author" }
+  ?publication_URI ex:type "Publication" .
+  ...
+  FILTER(CONTAINS(LCASE(?author_label), LCASE("james")))
+  ...
+}
+GROUP BY ?entity_label ?entity_URI
+ORDER BY DESC(?Publication)
+LIMIT 50
+OFFSET 0
 ```
 
 ## Deployment
 
-This is a static application that can be deployed to GitHub Pages:
+This is a static application deployed on GitHub Pages:
 
-1. Build the project (if using a bundler)
-2. Push to a GitHub repository
-3. Enable GitHub Pages in repository settings
-4. The app runs entirely client-side with no backend required
+1. Changes pushed to `main` branch trigger automatic deployment
+2. Visit the GitHub Pages URL to view the live app
 
-## Browser Support
+### Manual Deployment
 
-- Modern browsers with ES6 module support
-- Tailwind CSS via CDN for styling
+1. Push to GitHub repository
+2. Go to Settings → Pages
+3. Select "GitHub Actions" as source
+4. Wait for workflow to complete
 
 ## Troubleshooting
 
-**CORS Issues:** If the SPARQL endpoint doesn't allow CORS, you may need a proxy server or CORS configuration on the endpoint.
+**CORS Issues**: The SPARQL endpoint must allow cross-origin requests. Configure CORS on the endpoint or use a proxy.
 
-**Empty Results:** Check the browser console for SPARQL query errors. The query can be logged from `fetchService.js`.
+**Empty Results**: Check browser console for SPARQL query errors.
 
-**Sorting Not Working:** Ensure the column name in `sort_by` matches exactly what's in `data.head.vars`.
+**Filters Not Working**: Verify filter key matches entity type in URL.
+
+## License
+
+MIT
