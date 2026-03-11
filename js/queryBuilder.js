@@ -82,29 +82,23 @@ LIMIT $LIMIT
 OFFSET $OFFSET
 `;
 
-const ENTITY_TYPE_TO_SPARQL_VAR = {
-    'Publication': '?publication_URI',
-    'Venue': '?venue_URI',
-    'Author': '?author_URI',
-    'Year': '?year_URI',
-    '2020s': '?2020s_URI',
-    '2010s': '?2010s_URI',
-    '2000s': '?2000s_URI',
-    'Pre2000s': '?Pre2000s_URI'
-};
-
-const ENTITY_TYPE_TO_LABEL_VAR = {
-    'Publication': '?publication_label',
-    'Venue': '?venue_label',
-    'Author': '?author_label',
-    'Year': '?year_label',
-    '2020s': '?2020s_label',
-    '2010s': '?2010s_label',
-    '2000s': '?2000s_label',
-    'Pre2000s': '?Pre2000s_label'
-};
-
 const VALID_ENTITIES = ['Author', 'Venue', 'Publication', 'Year', '2020s', '2010s', '2000s', 'Pre2000s'];
+
+function getLabelVar(entityType) {
+    return `?${entityType.toLowerCase()}_label`;
+}
+
+function getUriVar(entityType) {
+    return `?${entityType.toLowerCase()}_URI`;
+}
+
+function getValidFilterEntities(filters) {
+    if (!filters || Object.keys(filters).length === 0) {
+        return VALID_ENTITIES;
+    }
+    const filterKeys = Object.keys(filters).filter(k => filters[k] && filters[k].length > 0);
+    return filterKeys.length > 0 ? filterKeys : VALID_ENTITIES;
+}
 
 function buildFilters(filters, filterMode = 'label') {
     if (!filters || Object.keys(filters).length === 0) {
@@ -117,7 +111,7 @@ function buildFilters(filters, filterMode = 'label') {
         if (!values || !Array.isArray(values) || values.length === 0) continue;
 
         if (filterMode === 'uri') {
-            const uriVar = ENTITY_TYPE_TO_SPARQL_VAR[key];
+            const uriVar = getUriVar(key);
             if (!uriVar) continue;
 
             const uriValues = values.filter(v => v.startsWith('http://') || v.startsWith('https://'));
@@ -126,7 +120,7 @@ function buildFilters(filters, filterMode = 'label') {
                 filterClauses.push(`FILTER(${uriVar} IN (${uriClauses.join(',')}))`);
             }
         } else {
-            const labelVar = ENTITY_TYPE_TO_LABEL_VAR[key];
+            const labelVar = getLabelVar(key);
             if (!labelVar) continue;
 
             const lowercaseValues = values.map(v => {
@@ -165,8 +159,8 @@ function buildQuery(state, filterMode = 'label') {
     return query;
 }
 
-export { BASE_SPARQL_TEMPLATE, buildQuery, buildFilters, buildOrder, VALID_ENTITIES, ENTITY_TYPE_TO_SPARQL_VAR };
+export { BASE_SPARQL_TEMPLATE, buildQuery, buildFilters, buildOrder, VALID_ENTITIES, getValidFilterEntities };
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { BASE_SPARQL_TEMPLATE, buildQuery, buildFilters, buildOrder, VALID_ENTITIES, ENTITY_TYPE_TO_SPARQL_VAR };
+    module.exports = { BASE_SPARQL_TEMPLATE, buildQuery, buildFilters, buildOrder, VALID_ENTITIES, getValidFilterEntities };
 }

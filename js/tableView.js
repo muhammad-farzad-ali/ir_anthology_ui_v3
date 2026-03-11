@@ -40,6 +40,7 @@ function renderTableHead(vars, state) {
 
         const textBtn = document.createElement('button');
         textBtn.className = 'text-left text-xs font-medium tracking-wider';
+        textBtn.dataset.column = varName;
         if (state.entity === varName) {
             textBtn.classList.add('font-bold');
             textBtn.style.color = '#1d4ed8';
@@ -189,15 +190,15 @@ function handleCellClick(event) {
     const currentState = window.AppState;
     const newFilters = { ...currentState.filters };
     
-    if (!newFilters[entityType]) {
-        newFilters[entityType] = [];
+    if (!newFilters[clickedColumn]) {
+        newFilters[clickedColumn] = [];
     }
-    if (!Array.isArray(newFilters[entityType])) {
-        newFilters[entityType] = [newFilters[entityType]];
+    if (!Array.isArray(newFilters[clickedColumn])) {
+        newFilters[clickedColumn] = [newFilters[clickedColumn]];
     }
     
-    if (entityTitle && !newFilters[entityType].includes(entityTitle)) {
-        newFilters[entityType].push(entityTitle);
+    if (entityTitle && !newFilters[clickedColumn].includes(entityTitle)) {
+        newFilters[clickedColumn].push(entityTitle);
     }
 
     console.log('New filters:', newFilters);
