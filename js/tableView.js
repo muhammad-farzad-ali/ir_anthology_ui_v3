@@ -36,7 +36,7 @@ function renderTableHead(vars, state) {
 
         const th = document.createElement('th');
         const widthClass = COLUMN_WIDTHS[varName] || 'w-24';
-        th.className = `px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider sortable-header ${widthClass}`;
+        th.className = `px-4 py-3 text-left text-xs font-medium text-gray-500 tracking-wider sortable-header ${widthClass}`;
         th.textContent = varName;
         th.dataset.sortBy = varName;
 
