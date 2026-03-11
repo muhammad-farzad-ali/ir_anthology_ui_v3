@@ -106,7 +106,7 @@ const ENTITY_TYPE_TO_LABEL_VAR = {
 
 const VALID_ENTITIES = ['Author', 'Venue', 'Publication', 'Year', '2020s', '2010s', '2000s', 'Pre2000s'];
 
-function buildFilters(filters) {
+function buildFilters(filters, filterMode = 'label') {
     if (!filters || Object.keys(filters).length === 0) {
         return '';
     }
@@ -116,15 +116,26 @@ function buildFilters(filters) {
     for (const [key, values] of Object.entries(filters)) {
         if (!values || !Array.isArray(values) || values.length === 0) continue;
 
-        const labelVar = ENTITY_TYPE_TO_LABEL_VAR[key];
-        if (!labelVar) continue;
+        if (filterMode === 'uri') {
+            const uriVar = ENTITY_TYPE_TO_SPARQL_VAR[key];
+            if (!uriVar) continue;
 
-        const lowercaseValues = values.map(v => {
-            const str = String(v).toLowerCase().replace(/'/g, "\\'");
-            return `"${str}"`;
-        });
+            const uriValues = values.filter(v => v.startsWith('http://') || v.startsWith('https://'));
+            if (uriValues.length > 0) {
+                const uriClauses = uriValues.map(v => `<${v}>`);
+                filterClauses.push(`FILTER(${uriVar} IN (${uriClauses.join(',')}))`);
+            }
+        } else {
+            const labelVar = ENTITY_TYPE_TO_LABEL_VAR[key];
+            if (!labelVar) continue;
 
-        filterClauses.push(`FILTER(LCASE(${labelVar}) IN (${lowercaseValues.join(',')}))`);
+            const lowercaseValues = values.map(v => {
+                const str = String(v).toLowerCase().replace(/'/g, "\\'");
+                return `"${str}"`;
+            });
+
+            filterClauses.push(`FILTER(LCASE(${labelVar}) IN (${lowercaseValues.join(',')}))`);
+        }
     }
 
     return filterClauses.length > 0 ? filterClauses.join('\n  ') : '';
@@ -137,9 +148,9 @@ function buildOrder(sort_by, order) {
     return `ORDER BY ${direction}(?${sort_by})`;
 }
 
-function buildQuery(state) {
+function buildQuery(state, filterMode = 'label') {
     const entityType = VALID_ENTITIES.includes(state.entity) ? state.entity : 'Author';
-    const filters = buildFilters(state.filters);
+    const filters = buildFilters(state.filters, filterMode);
     const order = buildOrder(state.sort_by, state.order);
     const limit = state.limit || 100;
     const offset = ((state.page || 1) - 1) * limit;

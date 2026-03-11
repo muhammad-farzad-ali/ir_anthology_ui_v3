@@ -1,9 +1,10 @@
 import { getInitialState, setState, getState, updateURLFromState } from './state.js';
 import { buildQuery } from './queryBuilder.js';
-import { fetchWithCount } from './fetchService.js';
+import { fetchWithCount, setEndpoint } from './fetchService.js';
 import { renderTable } from './tableView.js';
 import { initSearch } from './search.js';
 import { renderFilterChips } from './filterChips.js';
+import { initSettings } from './settings.js';
 
 let currentFetchController = null;
 let isLoadingMore = false;
@@ -18,11 +19,18 @@ async function init() {
     previousLimit = 50;
 
     initSearch();
+    initSettings();
     renderFilterChips(initialState.filters);
 
     window.addEventListener('updateState', (event) => {
         console.log('updateState event received:', event.detail);
         setState(event.detail);
+    });
+
+    window.addEventListener('endpointChanged', (event) => {
+        console.log('Endpoint changed:', event.detail.endpoint);
+        setEndpoint(event.detail.endpoint);
+        loadData(false);
     });
 
     document.addEventListener('stateChanged', async (event) => {

@@ -1,4 +1,4 @@
-const SPARQL_ENDPOINT = 'http://webislab33.medien.uni-weimar.de:7018/sparql/';
+let SPARQL_ENDPOINT = 'http://webislab33.medien.uni-weimar.de:7018/sparql/';
 
 async function fetchEntities(sparqlQuery) {
     const url = `${SPARQL_ENDPOINT}?query=${encodeURIComponent(sparqlQuery)}`;
@@ -40,8 +40,16 @@ function buildCountQuery(sparqlQuery) {
     return withoutLimit;
 }
 
-export { fetchEntities, fetchWithCount, buildCountQuery, SPARQL_ENDPOINT };
+function setEndpoint(endpoint) {
+    SPARQL_ENDPOINT = endpoint;
+}
+
+function getEndpoint() {
+    return SPARQL_ENDPOINT;
+}
+
+export { fetchEntities, fetchWithCount, buildCountQuery, SPARQL_ENDPOINT, setEndpoint, getEndpoint };
 
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { fetchEntities, fetchWithCount, buildCountQuery, SPARQL_ENDPOINT };
+    module.exports = { fetchEntities, fetchWithCount, buildCountQuery, SPARQL_ENDPOINT, setEndpoint, getEndpoint };
 }

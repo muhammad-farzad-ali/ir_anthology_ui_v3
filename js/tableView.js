@@ -11,7 +11,7 @@ function renderTable(data, state) {
     const bindings = data.results.bindings;
 
     renderTableHead(vars, state);
-    renderTableBody(vars, bindings);
+    renderTableBody(vars, bindings, state);
 }
 
 const COLUMN_WIDTHS = {
@@ -80,9 +80,11 @@ function handleEntityChange(varName) {
     }));
 }
 
-function renderTableBody(vars, bindings) {
+function renderTableBody(vars, bindings, state) {
     const tbody = document.getElementById('table-body');
     if (!tbody) return;
+
+    const currentEntityType = state?.entity || 'Author';
 
     tbody.innerHTML = '';
 
@@ -120,10 +122,13 @@ function renderTableBody(vars, bindings) {
                     }
                     td.className = `px-4 py-3 text-sm text-gray-900 break-words ${widthClass}`;
                 } else if (CLICKABLE_COLUMNS.includes(varName)) {
+                    const entityTitle = row['Entity']?.value || displayValue;
+                    const entityUri = row['URI']?.value || '';
                     td.className = `clickable-cell text-blue-600 text-center ${widthClass}`;
                     td.dataset.column = varName;
-                    td.dataset.uri = row['URI']?.value || '';
-                    td.dataset.value = displayValue;
+                    td.dataset.entityTitle = entityTitle;
+                    td.dataset.entityUri = entityUri;
+                    td.dataset.entityType = currentEntityType;
                     td.textContent = displayValue;
                 } else {
                     td.textContent = displayValue;
@@ -173,32 +178,25 @@ function handleCellClick(event) {
     const cell = event.target.closest('.clickable-cell');
     if (!cell) return;
 
-    const clickedColumn = cell.dataset.column;
-    const rowUri = cell.dataset.uri;
-    const rowValue = cell.dataset.value;
+    const entityType = cell.dataset.entityType;
+    const entityTitle = cell.dataset.entityTitle;
 
-    console.log('Cell clicked:', { clickedColumn, rowUri, rowValue });
+    console.log('Cell clicked:', { entityType, entityTitle });
 
-    if (!rowUri && !rowValue) return;
+    if (!entityTitle) return;
 
     const currentState = window.AppState;
-    const currentEntityType = currentState.entity;
-
-    console.log('Current state:', { currentEntityType, currentFilters: currentState.filters });
-
     const newFilters = { ...currentState.filters };
     
-    if (!newFilters[currentEntityType]) {
-        newFilters[currentEntityType] = [];
+    if (!newFilters[entityType]) {
+        newFilters[entityType] = [];
     }
-    if (!Array.isArray(newFilters[currentEntityType])) {
-        newFilters[currentEntityType] = [newFilters[currentEntityType]];
+    if (!Array.isArray(newFilters[entityType])) {
+        newFilters[entityType] = [newFilters[entityType]];
     }
     
-    if (rowUri && !newFilters[currentEntityType].includes(rowUri)) {
-        newFilters[currentEntityType].push(rowUri);
-    } else if (rowValue && !newFilters[currentEntityType].includes(rowValue)) {
-        newFilters[currentEntityType].push(rowValue);
+    if (entityTitle && !newFilters[entityType].includes(entityTitle)) {
+        newFilters[entityType].push(entityTitle);
     }
 
     console.log('New filters:', newFilters);
@@ -206,7 +204,7 @@ function handleCellClick(event) {
 
     window.dispatchEvent(new CustomEvent('updateState', {
         detail: {
-            entity: clickedColumn,
+            entity: entityType,
             filters: newFilters,
             page: 1
         }
