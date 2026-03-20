@@ -77,90 +77,120 @@ WHERE {
 
 }
 GROUP BY ?entity_label ?entity_URI
+HAVING (BOUND(?entity_label) && BOUND(?entity_URI))
 $ORDER
 LIMIT $LIMIT
 OFFSET $OFFSET
 `;
 
-const VALID_ENTITIES = ['Author', 'Venue', 'Publication', 'Year', '2020s', '2010s', '2000s', 'Pre2000s'];
+const VALID_ENTITIES = [
+  "Author",
+  "Venue",
+  "Publication",
+  "Year",
+  "2020s",
+  "2010s",
+  "2000s",
+  "Pre2000s",
+];
 
 function getLabelVar(entityType) {
-    return `?${entityType.toLowerCase()}_label`;
+  return `?${entityType.toLowerCase()}_label`;
 }
 
 function getUriVar(entityType) {
-    return `?${entityType.toLowerCase()}_URI`;
+  return `?${entityType.toLowerCase()}_URI`;
 }
 
 function getValidFilterEntities(filters) {
-    if (!filters || Object.keys(filters).length === 0) {
-        return VALID_ENTITIES;
-    }
-    const filterKeys = Object.keys(filters).filter(k => filters[k] && filters[k].length > 0);
-    return filterKeys.length > 0 ? filterKeys : VALID_ENTITIES;
+  if (!filters || Object.keys(filters).length === 0) {
+    return VALID_ENTITIES;
+  }
+  const filterKeys = Object.keys(filters).filter(
+    (k) => filters[k] && filters[k].length > 0,
+  );
+  return filterKeys.length > 0 ? filterKeys : VALID_ENTITIES;
 }
 
-function buildFilters(filters, filterMode = 'label') {
-    if (!filters || Object.keys(filters).length === 0) {
-        return '';
+function buildFilters(filters, filterMode = "label") {
+  if (!filters || Object.keys(filters).length === 0) {
+    return "";
+  }
+
+  const filterClauses = [];
+
+  for (const [key, values] of Object.entries(filters)) {
+    if (!values || !Array.isArray(values) || values.length === 0) continue;
+
+    if (filterMode === "uri") {
+      const uriVar = getUriVar(key);
+      if (!uriVar) continue;
+
+      const uriValues = values.filter(
+        (v) => v.startsWith("http://") || v.startsWith("https://"),
+      );
+      if (uriValues.length > 0) {
+        const uriClauses = uriValues.map((v) => `<${v}>`);
+        filterClauses.push(`FILTER(${uriVar} IN (${uriClauses.join(",")}))`);
+      }
+    } else {
+      const labelVar = getLabelVar(key);
+      if (!labelVar) continue;
+
+      const containsClauses = values.map((v) => {
+        const str = String(v).toLowerCase().replace(/'/g, "\\'");
+        return `CONTAINS(LCASE(${labelVar}), LCASE("${str}"))`;
+      });
+
+      filterClauses.push(`FILTER(${containsClauses.join(" || ")})`);
     }
+  }
 
-    const filterClauses = [];
-
-    for (const [key, values] of Object.entries(filters)) {
-        if (!values || !Array.isArray(values) || values.length === 0) continue;
-
-        if (filterMode === 'uri') {
-            const uriVar = getUriVar(key);
-            if (!uriVar) continue;
-
-            const uriValues = values.filter(v => v.startsWith('http://') || v.startsWith('https://'));
-            if (uriValues.length > 0) {
-                const uriClauses = uriValues.map(v => `<${v}>`);
-                filterClauses.push(`FILTER(${uriVar} IN (${uriClauses.join(',')}))`);
-            }
-        } else {
-            const labelVar = getLabelVar(key);
-            if (!labelVar) continue;
-
-            const containsClauses = values.map(v => {
-                const str = String(v).toLowerCase().replace(/'/g, "\\'");
-                return `CONTAINS(LCASE(${labelVar}), LCASE("${str}"))`;
-            });
-
-            filterClauses.push(`FILTER(${containsClauses.join(' || ')})`);
-        }
-    }
-
-    return filterClauses.length > 0 ? filterClauses.join('\n  ') : '';
+  return filterClauses.length > 0 ? filterClauses.join("\n  ") : "";
 }
 
 function buildOrder(sort_by, order) {
-    if (!sort_by) return 'ORDER BY DESC(?Publication)';
-    
-    const direction = order === 'asc' ? 'ASC' : 'DESC';
-    return `ORDER BY ${direction}(?${sort_by})`;
+  if (!sort_by) return "ORDER BY DESC(?Publication)";
+
+  const direction = order === "asc" ? "ASC" : "DESC";
+  return `ORDER BY ${direction}(?${sort_by})`;
 }
 
-function buildQuery(state, filterMode = 'label') {
-    const entityType = VALID_ENTITIES.includes(state.entity) ? state.entity : 'Author';
-    const filters = buildFilters(state.filters, filterMode);
-    const order = buildOrder(state.sort_by, state.order);
-    const limit = state.limit || 100;
-    const offset = ((state.page || 1) - 1) * limit;
+function buildQuery(state, filterMode = "label") {
+  const entityType = VALID_ENTITIES.includes(state.entity)
+    ? state.entity
+    : "Author";
+  const filters = buildFilters(state.filters, filterMode);
+  const order = buildOrder(state.sort_by, state.order);
+  const limit = state.limit || 100;
+  const offset = ((state.page || 1) - 1) * limit;
 
-    let query = BASE_SPARQL_TEMPLATE;
-    query = query.replace('$ENTITY_TYPE', entityType);
-    query = query.replace('$FILTERS', filters);
-    query = query.replace('$ORDER', order);
-    query = query.replace('$LIMIT', limit.toString());
-    query = query.replace('$OFFSET', offset.toString());
+  let query = BASE_SPARQL_TEMPLATE;
+  query = query.replace("$ENTITY_TYPE", entityType);
+  query = query.replace("$FILTERS", filters);
+  query = query.replace("$ORDER", order);
+  query = query.replace("$LIMIT", limit.toString());
+  query = query.replace("$OFFSET", offset.toString());
 
-    return query;
+  return query;
 }
 
-export { BASE_SPARQL_TEMPLATE, buildQuery, buildFilters, buildOrder, VALID_ENTITIES, getValidFilterEntities };
+export {
+  BASE_SPARQL_TEMPLATE,
+  buildQuery,
+  buildFilters,
+  buildOrder,
+  VALID_ENTITIES,
+  getValidFilterEntities,
+};
 
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = { BASE_SPARQL_TEMPLATE, buildQuery, buildFilters, buildOrder, VALID_ENTITIES, getValidFilterEntities };
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    BASE_SPARQL_TEMPLATE,
+    buildQuery,
+    buildFilters,
+    buildOrder,
+    VALID_ENTITIES,
+    getValidFilterEntities,
+  };
 }
